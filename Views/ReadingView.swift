@@ -1,8 +1,11 @@
 import SwiftUI
+import ARKit
 
 struct ReadingView: View {
+    @StateObject private var eyeTrackingService = EyeTrackingService()
     @State private var selectedArticle: Article? = SampleArticles.articles.first
     @State private var showingSidebar = false
+    @State private var highlightedWord: String?
     
     var body: some View {
         NavigationSplitView {
@@ -29,9 +32,22 @@ struct ReadingView: View {
                             .font(.title)
                             .padding(.bottom)
                         
-                        Text(article.content)
-                            .font(.body)
-                            .lineSpacing(8)
+                        // Status indicator
+                        HStack {
+                            Image(systemName: eyeTrackingService.isTrackingAvailable ? "eyes" : "eyes.slash")
+                                .foregroundColor(eyeTrackingService.isTrackingAvailable ? .green : .red)
+                            Text(eyeTrackingService.trackingStatus)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.bottom)
+                        
+                        WordFlowLayout(
+                            words: article.content.components(separatedBy: .whitespacesAndNewlines),
+                            highlightedWord: $highlightedWord,
+                            difficultWords: article.difficultWords,
+                            eyeTrackingService: eyeTrackingService
+                        )
                         
                         Divider()
                         
@@ -55,10 +71,21 @@ struct ReadingView: View {
                     }
                     .padding()
                 }
+                .onAppear {
+                    eyeTrackingService.startTracking()
+                }
+                .onDisappear {
+                    eyeTrackingService.stopTracking()
+                }
             } else {
                 Text("Select an article to begin reading")
                     .foregroundColor(.secondary)
             }
+        }
+        .alert("Eye Tracking Not Available", isPresented: .constant(!eyeTrackingService.isTrackingAvailable)) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("This device does not support eye tracking features.")
         }
     }
 }
