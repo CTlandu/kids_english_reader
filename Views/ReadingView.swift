@@ -1,5 +1,4 @@
 import SwiftUI
-import ARKit
 
 struct ReadingView: View {
     @StateObject private var eyeTrackingService = EyeTrackingService()
@@ -48,6 +47,17 @@ struct ReadingView: View {
                             difficultWords: article.difficultWords,
                             eyeTrackingService: eyeTrackingService
                         )
+                        .onChange(of: highlightedWord) { oldWord, newWord in
+                            if let word = newWord {
+                                print("单词被选中: \(word)")
+                                // 3秒后自动清除选中状态
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    if highlightedWord == word {
+                                        highlightedWord = nil
+                                    }
+                                }
+                            }
+                        }
                         
                         Divider()
                         
@@ -85,7 +95,7 @@ struct ReadingView: View {
         .alert("Eye Tracking Not Available", isPresented: .constant(!eyeTrackingService.isTrackingAvailable)) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("This device does not support eye tracking features.")
+            Text("The eye tracking feature has not been enabled for this device.")
         }
     }
 }

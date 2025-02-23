@@ -5,25 +5,60 @@ struct WordFlowLayout: View {
     let words: [String]
     @Binding var highlightedWord: String?
     let difficultWords: [String: String]
-    @State private var wordFrames: [String: CGRect] = [:]
     let eyeTrackingService: EyeTrackingService
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(words.joined(separator: " "))
-                .font(.body)
-                .lineSpacing(8)
-                .background(
-                    GeometryReader { geometry in
-                        Color.clear.onAppear {
-                            calculateWordFrames(in: geometry)
+            ForEach(splitIntoSentences(), id: \.self) { sentence in
+                HStack(alignment: .center, spacing: 2) {
+                    ForEach(sentence, id: \.self) { word in
+                        if difficultWords.keys.contains(word) {
+                            Button(action: {
+                                highlightedWord = word
+                            }) {
+                                Text(word)
+                                    .foregroundColor(.white)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        Rectangle()
+                                            .fill(Color.yellow.opacity(0.3))
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .fixedSize()
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityLabel(word)
+                            .accessibilityHint("Look at this word to see its definition")
+                        } else {
+                            Text(word)
+                                .foregroundColor(.primary)
+                                .fixedSize(horizontal: true, vertical: false)
                         }
+                        Text(" ")
+                            .fixedSize()
                     }
-                )
-                .foregroundColor(Color.primary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Spacer().frame(height: 4)
+            }
             
+            // 测试用的选中状态显示
+            if let highlightedWord = highlightedWord {
+                Text("\"\(highlightedWord)\": 被选中")
+                    .font(.caption)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.yellow.opacity(0.2))
+                    )
+                    .transition(.scale.combined(with: .opacity))
+                    .animation(.spring(), value: highlightedWord)
+            }
+            
+            // 词义解释视图
             if let highlightedWord = highlightedWord,
-               eyeTrackingService.showWordDefinition,
                let definition = difficultWords[highlightedWord] {
                 WordDefinitionView(word: highlightedWord, definition: definition)
                     .transition(.scale.combined(with: .opacity))
@@ -31,56 +66,75 @@ struct WordFlowLayout: View {
         }
     }
     
-    private func calculateWordFrames(in geometry: GeometryProxy) {
-        let attributedString = NSAttributedString(
-            string: words.joined(separator: " "),
-            attributes: [
-                .font: UIFont.systemFont(ofSize: 17),
-                .paragraphStyle: {
-                    let style = NSMutableParagraphStyle()
-                    style.lineSpacing = 8
-                    return style
-                }()
-            ]
-        )
+    // 将文本分割成句子
+    private func splitIntoSentences() -> [[String]] {
+        let sentences = words.joined(separator: " ")
+            .components(separatedBy: ". ")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
         
-        let framesetter = CTFramesetterCreateWithAttributedString(attributedString)
-        let path = CGPath(rect: geometry.frame(in: .local), transform: nil)
-        let frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, 0), path, nil)
-        
-        var newWordFrames: [String: CGRect] = [:]
-        var currentIndex = 0
-        
-        let lines = CTFrameGetLines(frame) as! [CTLine]
-        var lineOrigins = Array(repeating: CGPoint.zero, count: lines.count)
-        CTFrameGetLineOrigins(frame, CFRangeMake(0, 0), &lineOrigins)
-        
-        for (lineIndex, line) in lines.enumerated() {
-            let lineOrigin = lineOrigins[lineIndex]
-            let runs = CTLineGetGlyphRuns(line) as! [CTRun]
-            
-            for run in runs {
-                let runRange = CTRunGetStringRange(run)
-                let runStart = runRange.location
-                let runLength = runRange.length
-                
-                let runString = (attributedString.string as NSString).substring(with: NSRange(location: runStart, length: runLength))
-                let runWords = runString.components(separatedBy: " ")
-                
-                for word in runWords {
-                    if currentIndex < words.count && words[currentIndex] == word {
-                        var runBounds = CTRunGetImageBounds(run, nil, CFRangeMake(0, 0))
-                        runBounds.origin.y = geometry.size.height - lineOrigin.y - runBounds.height
-                        
-                        newWordFrames[word] = runBounds
-                        currentIndex += 1
-                    }
-                }
-            }
+        return sentences.map { sentence in
+            sentence.components(separatedBy: .whitespaces)
+                .filter { !$0.isEmpty }
         }
+    }
+}
+
+// 用于实现流式布局的辅助视图
+struct FlowLayout: Layout {
+    var alignment: HorizontalAlignment = .leading
+    var spacing: CGFloat = 0
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(
+            in: proposal.replacingUnspecifiedDimensions().width,
+            subviews: subviews,
+            alignment: alignment,
+            spacing: spacing
+        )
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(
+            in: bounds.width,
+            subviews: subviews,
+            alignment: alignment,
+            spacing: spacing
+        )
+        for (index, subview) in subviews.enumerated() {
+            let point = result.points[index]
+            subview.place(at: CGPoint(x: point.x + bounds.minX, y: point.y + bounds.minY), proposal: .unspecified)
+        }
+    }
+    
+    struct FlowResult {
+        var size: CGSize = .zero
+        var points: [CGPoint] = []
         
-        wordFrames = newWordFrames
-        eyeTrackingService.updateWordFrames(newWordFrames)
+        init(in maxWidth: CGFloat, subviews: Subviews, alignment: HorizontalAlignment, spacing: CGFloat) {
+            var currentX: CGFloat = 0
+            var currentY: CGFloat = 0
+            var lineHeight: CGFloat = 0
+            var lineStart = 0
+            
+            for (index, subview) in subviews.enumerated() {
+                let size = subview.sizeThatFits(.unspecified)
+                
+                if currentX + size.width > maxWidth && lineStart < index {
+                    // 换行
+                    currentX = 0
+                    currentY += lineHeight + spacing
+                    lineHeight = 0
+                    lineStart = index
+                }
+                
+                points.append(CGPoint(x: currentX, y: currentY))
+                currentX += size.width + spacing
+                lineHeight = max(lineHeight, size.height)
+            }
+            
+            size = CGSize(width: maxWidth, height: currentY + lineHeight)
+        }
     }
 }
 
