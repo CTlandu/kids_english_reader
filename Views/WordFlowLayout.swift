@@ -1,29 +1,65 @@
 import SwiftUI
 import CoreText
 
+// 添加用于获取尺寸的 PreferenceKey
+struct SizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}
+
 struct WordFlowLayout: View {
     let words: [String]
     @Binding var highlightedWord: String?
     let difficultWords: [String: String]
     let eyeTrackingService: EyeTrackingService
+    let fontSize: FontSize
+    @State private var showingDefinition: String?
+    @State private var definitionTimer: Timer?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             ForEach(splitIntoSentences(), id: \.self) { sentence in
-                HStack(alignment: .center, spacing: 2) {
+                HStack(alignment: .center, spacing: 4) {
                     ForEach(sentence, id: \.self) { word in
                         if difficultWords.keys.contains(word) {
                             Button(action: {
-                                highlightedWord = word
+                                handleWordSelection(word)
                             }) {
                                 Text(word)
                                     .foregroundColor(.white)
                                     .fixedSize(horizontal: true, vertical: false)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 2)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 4)
                                     .background(
                                         Rectangle()
                                             .fill(Color.yellow.opacity(0.3))
+                                    )
+                                    .overlay(
+                                        // 单词释义弹窗
+                                        Group {
+                                            if showingDefinition == word,
+                                               let definition = difficultWords[word] {
+                                                VStack(alignment: .leading, spacing: 8) {
+                                                    Text(definition)
+                                                        .font(.system(size: fontSize.size + 4))
+                                                        .foregroundColor(.white)
+                                                        .padding(16)
+                                                        .background(
+                                                            RoundedRectangle(cornerRadius: 12)
+                                                                .fill(Color.blue)
+                                                                .shadow(radius: 4)
+                                                        )
+                                                        .padding(.vertical, 8)
+                                                        .fixedSize(horizontal: true, vertical: false)
+                                                        .frame(maxWidth: .infinity)
+                                                        .offset(y: 40)
+                                                        .transition(.scale.combined(with: .opacity))
+                                                        .zIndex(10)
+                                                }
+                                            }
+                                        }
                                     )
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -40,8 +76,7 @@ struct WordFlowLayout: View {
                             .fixedSize()
                     }
                 }
-                .fixedSize(horizontal: false, vertical: true)
-                Spacer().frame(height: 4)
+                .padding(.vertical, 2)
             }
             
             // 测试用的选中状态显示
@@ -62,6 +97,25 @@ struct WordFlowLayout: View {
                let definition = difficultWords[highlightedWord] {
                 WordDefinitionView(word: highlightedWord, definition: definition)
                     .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(GeometryReader { geometry in
+            Color.clear.preference(key: SizePreferenceKey.self, value: geometry.size)
+        })
+        .onPreferenceChange(SizePreferenceKey.self) { size in
+            let definitionText = definition
+            print("实际弹窗宽度: \(size.width)")
+            print("释义文本理想宽度: \(definitionText.size(withAttributes: [.font: UIFont.systemFont(ofSize: fontSize.size + 4)]).width)")
+        }
+    }
+    
+    private func handleWordSelection(_ word: String) {
+        showingDefinition = word
+        definitionTimer?.invalidate()
+        definitionTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
+            withAnimation {
+                showingDefinition = nil
             }
         }
     }
