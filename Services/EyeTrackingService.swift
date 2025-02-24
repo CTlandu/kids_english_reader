@@ -5,7 +5,7 @@ class EyeTrackingService: ObservableObject {
     @Published var highlightedWord: String?
     @Published var isTrackingAvailable: Bool = false
     @Published var showWordDefinition: Bool = false
-    @Published var trackingStatus: String = "Eye tracking API not yet available"
+    @Published var trackingStatus: String = "Use Eye tracking; stare at highlighted words to see definitions; or if staring doesn't work well; simply press the words to test"
     
     private var wordFrames: [String: CGRect] = [:]
     

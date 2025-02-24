@@ -35,6 +35,8 @@ struct FeatureCard: View {
 
 // 然后定义 IntroductionView
 struct IntroductionView: View {
+    @Binding var selectedTab: Int
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 40) {
@@ -86,6 +88,17 @@ struct IntroductionView: View {
                         .multilineTextAlignment(.center)
                         .foregroundColor(.secondary)
                         .padding(.horizontal)
+                    
+                    Button(action: {
+                        selectedTab = 3
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.right.circle.fill")
+                            Text("Learn More About Our Vision")
+                        }
+                        .foregroundColor(.blue)
+                        .padding(.vertical, 8)
+                    }
                 }
                 .padding(.vertical, 20)
                 
@@ -97,5 +110,5 @@ struct IntroductionView: View {
 }
 
 #Preview {
-    IntroductionView()
+    IntroductionView(selectedTab: .constant(0))
 } 

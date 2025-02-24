@@ -27,7 +27,7 @@ struct TutorialView: View {
                     
                     TutorialStep(
                         step: 3,
-                        title: "Reading with Eyes",
+                        title: "Go to 'Read' tab, Reading with Eyes",
                         description: "Focus on words to see their meanings",
                         animation: AnyView(ReadingAnimation())
                     )
