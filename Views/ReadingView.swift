@@ -18,19 +18,20 @@ struct ReadingView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .padding(.horizontal, 24)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.blue.opacity(0.1))
-                        )
                     
                     // Status indicator
                     HStack {
-                        Image(systemName: eyeTrackingService.isTrackingAvailable ? "eyes" : "eyes.slash")
-                            .foregroundColor(eyeTrackingService.isTrackingAvailable ? .green : .red)
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .font(.system(size: 20))
                         Text(eyeTrackingService.trackingStatus)
-                            .font(.caption)
+                            .font(.system(size: 16))
                             .foregroundColor(.secondary)
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
                     
                     // Article content
                     WordFlowLayout(
@@ -46,7 +47,8 @@ struct ReadingView: View {
                         }
                     )
                     .font(.system(size: fontSize.size))
-                    .background(Color.red.opacity(0.1))
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 24)
                     
                     // Definition area
                     DefinitionArea(
@@ -122,12 +124,15 @@ struct DefinitionArea: View {
     
     var body: some View {
         if let word = word, let definition = definition {
-            VStack(spacing: 12) {
-                HStack(alignment: .top) {
+            VStack(spacing: 16) {
+                VStack(spacing: 8) {
                     Image(systemName: "lightbulb.fill")
                         .foregroundColor(.yellow)
-                        .font(.system(size: 24))
-                    Spacer()
+                        .font(.system(size: 28))
+                    
+                    Text("See the definition of the word here!")
+                        .font(.system(size: fontSize.size - 2))
+                        .foregroundColor(.secondary)
                 }
                 
                 Text(word)
@@ -140,7 +145,7 @@ struct DefinitionArea: View {
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
             }
-            .padding(20)
+            .padding(24)
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 16)

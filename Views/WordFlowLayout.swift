@@ -38,13 +38,17 @@ struct WordFlowLayout: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                             .fixedSize()
-                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAddTraits([.isButton, .isSelected])
                             .accessibilityLabel(word)
-                            .accessibilityHint("Look at this word to see its definition")
+                            .accessibilityHint("Focus on this word to see its definition")
+                            .accessibilityValue("Difficult word")
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                         } else {
                             Text(word)
                                 .foregroundColor(.primary)
                                 .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 2)
                         }
                         Text(" ")
                             .fixedSize()
