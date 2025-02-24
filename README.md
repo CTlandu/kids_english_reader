@@ -1,68 +1,64 @@
-# Eye-Tracking Assisted Reading App
+# EyeRead - Accessible Learning Through Eye Tracking
 ## WWDC24 Swift Student Challenge Submission
 
-### 项目概述
-这是一个专门为帮助 ADHD 儿童和非英语母语者提升英语阅读能力的 iOS/iPadOS 应用。该应用利用 iOS 18 新推出的眼动追踪（Eye Tracking）功能，为用户提供实时阅读辅助。
+### Project Overview
+EyeRead is an innovative iOS/iPadOS application designed to empower physically challenged children in their English learning journey. Leveraging iOS 18's groundbreaking Eye Tracking technology, the app enables children to read and interact with English texts using only their eyes, eliminating the need for physical interaction with the device.
 
-### 核心功能
-- 眼动追踪辅助阅读
-  - 检测用户视线在特定单词上的停留时间
-  - 当停留时间超过阈值时自动触发辅助功能
-- 阅读辅助功能
-  - 单词自动发音
-  - 单词释义提示
-  - 上下文相关提示
-  - 视觉注意力引导
+### Core Features
+- Hands-free Reading Experience
+  - Navigate through text using eye movements
+  - Select words by focusing gaze
+  - Access word definitions through eye-tracking gestures
+- Adaptive Learning Support
+  - Real-time word definitions
+  - Context-aware assistance
+  - Progressive learning path
+- Accessibility-First Design
+  - Intuitive eye-tracking interface
+  - Clear visual feedback
+  - Adjustable text sizes
 
-### 技术要求
-- 开发平台：Swift Playgrounds App (iPadOS)
-- 目标系统：iOS/iPadOS 18+
-- 核心技术：
-  - Swift UI
-  - Accessibility API
+### Technical Requirements
+- Development Platform: Swift Playgrounds App (iPadOS)
+- Target System: iOS/iPadOS 18+
+- Core Technologies:
+  - SwiftUI
   - Eye Tracking API
-  - Text-to-Speech
+  - Accessibility Framework
+  - Dynamic Typography
 
-### 开发流程
-1. 在 iPad 上使用 Swift Playgrounds 进行主要开发
-2. 使用 Cursor 编辑器进行代码审查和优化
-3. 在 iPad 上进行测试和运行
+### Development Process
+1. Development on iPad using Swift Playgrounds
+2. Code review and optimization using Cursor editor
+3. Testing and validation on iPad
 
-### 项目时间线
-- 开发周期：1周
-- 主要里程碑：
-  - Day 1-2: 基础UI搭建
-  - Day 3-4: 眼动追踪功能实现
-  - Day 5-6: 阅读辅助功能开发
-  - Day 7: 测试和优化
+### Target Users
+- Children with physical mobility challenges
+- Young English learners
+- Special education students
 
-### 目标用户
-- ADHD儿童
-- 非英语母语的儿童（特别是中国儿童）
-- 有阅读障碍的学习者
+### Expected Outcomes
+1. Enhanced Reading Independence
+2. Improved English Vocabulary
+3. Increased Learning Engagement
+4. Greater Accessibility in Education
 
-### 预期效果
-1. 提升阅读流畅度
-2. 增强单词认知能力
-3. 改善阅读理解能力
-4. 提供实时、智能的阅读辅助
+### Innovation Points
+1. Pioneering use of iOS 18 Eye Tracking
+2. Focus on physical accessibility needs
+3. Non-touch interactive learning
+4. Educational psychology integration
 
-### 创新点
-1. 利用最新的眼动追踪技术
-2. 针对特定用户群体的需求
-3. 实时、非侵入式的辅助方式
-4. 结合教育学原理的智能辅助
+### Key Considerations
+- Swift Student Challenge submission requirements compliance
+- Privacy and security considerations
+- Clean and intuitive interface
+- Non-intrusive assistance features
+- English-only interface for global accessibility
 
-### 注意事项
-- 需要确保代码符合 Swift Student Challenge 的提交要求
-- 需要特别关注隐私和安全性考虑
-- 保持用户界面简洁直观
-- 确保辅助功能不会干扰正常阅读流程
-- 应用界面和内容使用英语，以确保全球可用性
-
-### 后续更新计划
-本文档将随项目进展持续更新，包括：
-- 具体功能实现细节
-- 技术难点解决方案
-- 用户测试反馈
-- 性能优化记录 
+### Future Updates
+This document will be updated with:
+- Feature implementation details
+- Technical solutions
+- User testing feedback
+- Performance optimizations 
