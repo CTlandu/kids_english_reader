@@ -15,19 +15,19 @@ struct TutorialView: View {
                         step: 1,
                         title: "Position Your Device",
                         description: "Hold your iPad at a comfortable reading distance",
-                        animation: AnyView(DevicePositionAnimation())
+                        animation: AnyView(DevicePositioningAnimation())
                     )
                     
                     TutorialStep(
                         step: 2,
-                        title: "Enable Eye Tracking",
-                        description: "Allow the app to track your eye movements",
-                        animation: AnyView(EyeTrackingAnimation())
+                        title: "Eye Tracking Permission",
+                        description: "Allow eye tracking when prompted",
+                        animation: AnyView(PermissionAnimation())
                     )
                     
                     TutorialStep(
                         step: 3,
-                        title: "Start Reading",
+                        title: "Reading with Eyes",
                         description: "Focus on words to see their meanings",
                         animation: AnyView(ReadingAnimation())
                     )
@@ -62,115 +62,105 @@ struct TutorialStep: View {
                     .bold()
             }
             
-            // Description
-            Text(description)
-                .foregroundColor(.secondary)
-                .padding(.leading, 56)
-            
             // Animation area
             animation
-                .frame(height: 200)
+                .frame(height: step == 2 ? 600 : 200)
                 .frame(maxWidth: .infinity)
                 .background(Color.blue.opacity(0.1))
                 .cornerRadius(16)
+            
+            // Description
+            Text(description)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 4)
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.1), radius: 10)
+        .shadow(color: .black.opacity(0.1), radius: 10)
     }
 }
 
-struct DevicePositionAnimation: View {
-    @State private var deviceOffset: CGFloat = -20
+// Device Positioning Animation
+struct DevicePositioningAnimation: View {
+    @State private var deviceOffset: CGFloat = 0
     
     var body: some View {
-        Image(systemName: "ipad")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 100)
-            .offset(y: deviceOffset)
-            .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 1.5)
-                    .repeatForever(autoreverses: true)
-                ) {
-                    deviceOffset = 20
+        ZStack {
+            // Device outline
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.blue, lineWidth: 2)
+                .frame(width: 120, height: 160)
+                .offset(y: deviceOffset)
+                .animation(Animation.easeInOut(duration: 2).repeatForever(autoreverses: true), value: deviceOffset)
+                .onAppear {
+                    deviceOffset = -20
                 }
-            }
-    }
-}
-
-struct EyeTrackingAnimation: View {
-    @State private var eyePosition: CGFloat = -10
-    
-    var body: some View {
-        HStack(spacing: 30) {
-            // Left eye
-            Circle()
-                .stroke(Color.blue, lineWidth: 2)
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 20)
-                        .offset(x: eyePosition)
-                )
             
-            // Right eye
-            Circle()
-                .stroke(Color.blue, lineWidth: 2)
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 20)
-                        .offset(x: eyePosition)
-                )
-        }
-        .onAppear {
-            withAnimation(
-                .easeInOut(duration: 2)
-                .repeatForever(autoreverses: true)
-            ) {
-                eyePosition = 10
-            }
+            // Face icon
+            Image(systemName: "face.smiling")
+                .font(.system(size: 40))
+                .foregroundColor(.blue)
         }
     }
 }
 
+// Permission Animation
+struct PermissionAnimation: View {
+    var body: some View {
+        Image("accessibility_demo")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: .infinity)
+            .padding()
+    }
+}
+
+// Reading Animation
 struct ReadingAnimation: View {
-    @State private var highlightedWordIndex = 0
-    let words = ["Focus", "on", "any", "word", "to", "learn"]
-    @State private var task: Task<Void, Never>?
+    @State private var highlightedWord = false
+    @State private var showDefinition = false
     
     var body: some View {
-        HStack(spacing: 8) {
-            ForEach(Array(words.enumerated()), id: \.offset) { index, word in
-                Text(word)
+        ZStack {
+            VStack(spacing: 20) {
+                // Sample text
+                Text("The quick brown fox")
+                    .font(.system(size: 20))
+                
+                // Highlighted word
+                Text("jumps")
+                    .font(.system(size: 20))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(index == highlightedWordIndex ? Color.yellow.opacity(0.3) : Color.clear)
-                    )
-            }
-        }
-        .onAppear {
-            // 创建新的异步任务
-            task = Task { @MainActor in
-                while !Task.isCancelled {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        highlightedWordIndex = (highlightedWordIndex + 1) % words.count
-                    }
-                    try? await Task.sleep(for: .seconds(1))
+                    .background(highlightedWord ? Color.yellow.opacity(0.3) : Color.clear)
+                    .animation(.easeInOut(duration: 1), value: highlightedWord)
+                
+                Text("over the lazy dog")
+                    .font(.system(size: 20))
+                
+                if showDefinition {
+                    // Word definition
+                    Text("jump: to push oneself off a surface and into the air")
+                        .font(.caption)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(8)
+                        .transition(.scale.combined(with: .opacity))
                 }
             }
         }
-        .onDisappear {
-            // 取消任务
-            task?.cancel()
-            task = nil
+        .onAppear {
+            withAnimation(Animation.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                highlightedWord = true
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    withAnimation {
+                        showDefinition = true
+                    }
+                }
+            }
         }
     }
 }
